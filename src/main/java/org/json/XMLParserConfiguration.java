@@ -36,6 +36,17 @@ import java.util.Set;
  */
 @SuppressWarnings({""})
 public class XMLParserConfiguration {
+    /**
+     * Used to indicate there's no defined limit to the maximum nesting depth when parsing a XML
+     * document to JSON.
+     */
+    public static final int UNDEFINED_MAXIMUM_NESTING_DEPTH = -1;
+
+    /**
+     * The default maximum nesting depth when parsing a XML document to JSON.
+     */
+    public static final int DEFAULT_MAXIMUM_NESTING_DEPTH = 512;
+
     /** Original Configuration of the XML Parser. */
     public static final XMLParserConfiguration ORIGINAL
         = new XMLParserConfiguration();
@@ -48,14 +59,14 @@ public class XMLParserConfiguration {
      * they should try to be guessed into JSON values (numeric, boolean, string)
      */
     private boolean keepStrings;
-    
+
     /**
      * The name of the key in a JSON Object that indicates a CDATA section. Historically this has
      * been the value "content" but can be changed. Use <code>null</code> to indicate no CDATA
      * processing.
      */
     private String cDataTagName;
-    
+
     /**
      * When parsing the XML into JSON, specifies if values with attribute xsi:nil="true"
      * should be kept as attribute(<code>false</code>), or they should be converted to
@@ -73,6 +84,11 @@ public class XMLParserConfiguration {
      * to arrays
      */
     private Set<String> forceList;
+
+    /**
+     * The maximum nesting depth when parsing a XML document to JSON.
+     */
+    private int maxNestingDepth = DEFAULT_MAXIMUM_NESTING_DEPTH;
 
     /**
      * Default parser configuration. Does not keep strings (tries to implicitly convert
@@ -160,15 +176,18 @@ public class XMLParserConfiguration {
      *                                  <code>false</code> to parse values with attribute xsi:nil="true" as {"xsi:nil":true}.
      * @param xsiTypeMap  <code>new HashMap<String, XMLXsiTypeConverter<?>>()</code> to parse values with attribute
      *                   xsi:type="integer" as integer,  xsi:type="string" as string
-     * @param forceList  <code>new HashSet<String>()</code> to parse the provided tags' values as arrays 
+     * @param forceList  <code>new HashSet<String>()</code> to parse the provided tags' values as arrays
+     * @param maxNestingDepth <code>int</code> to limit the nesting depth
      */
     private XMLParserConfiguration (final boolean keepStrings, final String cDataTagName,
-            final boolean convertNilAttributeToNull, final Map<String, XMLXsiTypeConverter<?>> xsiTypeMap, final Set<String> forceList ) {
+            final boolean convertNilAttributeToNull, final Map<String, XMLXsiTypeConverter<?>> xsiTypeMap, final Set<String> forceList,
+            final int maxNestingDepth) {
         this.keepStrings = keepStrings;
         this.cDataTagName = cDataTagName;
         this.convertNilAttributeToNull = convertNilAttributeToNull;
         this.xsiTypeMap = Collections.unmodifiableMap(xsiTypeMap);
         this.forceList = Collections.unmodifiableSet(forceList);
+        this.maxNestingDepth = maxNestingDepth;
     }
 
     /**
@@ -186,14 +205,15 @@ public class XMLParserConfiguration {
                 this.cDataTagName,
                 this.convertNilAttributeToNull,
                 this.xsiTypeMap,
-                this.forceList
+                this.forceList,
+                this.maxNestingDepth
         );
     }
-    
+
     /**
      * When parsing the XML into JSON, specifies if values should be kept as strings (<code>true</code>), or if
      * they should try to be guessed into JSON values (numeric, boolean, string)
-     * 
+     *
      * @return The <code>keepStrings</code> configuration value.
      */
     public boolean isKeepStrings() {
@@ -203,10 +223,10 @@ public class XMLParserConfiguration {
     /**
      * When parsing the XML into JSON, specifies if values should be kept as strings (<code>true</code>), or if
      * they should try to be guessed into JSON values (numeric, boolean, string)
-     * 
+     *
      * @param newVal
      *      new value to use for the <code>keepStrings</code> configuration option.
-     * 
+     *
      * @return The existing configuration will not be modified. A new configuration is returned.
      */
     public XMLParserConfiguration withKeepStrings(final boolean newVal) {
@@ -219,7 +239,7 @@ public class XMLParserConfiguration {
      * The name of the key in a JSON Object that indicates a CDATA section. Historically this has
      * been the value "content" but can be changed. Use <code>null</code> to indicate no CDATA
      * processing.
-     * 
+     *
      * @return The <code>cDataTagName</code> configuration value.
      */
     public String getcDataTagName() {
@@ -230,10 +250,10 @@ public class XMLParserConfiguration {
      * The name of the key in a JSON Object that indicates a CDATA section. Historically this has
      * been the value "content" but can be changed. Use <code>null</code> to indicate no CDATA
      * processing.
-     * 
+     *
      * @param newVal
      *      new value to use for the <code>cDataTagName</code> configuration option.
-     * 
+     *
      * @return The existing configuration will not be modified. A new configuration is returned.
      */
     public XMLParserConfiguration withcDataTagName(final String newVal) {
@@ -246,7 +266,7 @@ public class XMLParserConfiguration {
      * When parsing the XML into JSON, specifies if values with attribute xsi:nil="true"
      * should be kept as attribute(<code>false</code>), or they should be converted to
      * <code>null</code>(<code>true</code>)
-     * 
+     *
      * @return The <code>convertNilAttributeToNull</code> configuration value.
      */
     public boolean isConvertNilAttributeToNull() {
@@ -257,10 +277,10 @@ public class XMLParserConfiguration {
      * When parsing the XML into JSON, specifies if values with attribute xsi:nil="true"
      * should be kept as attribute(<code>false</code>), or they should be converted to
      * <code>null</code>(<code>true</code>)
-     * 
+     *
      * @param newVal
      *      new value to use for the <code>convertNilAttributeToNull</code> configuration option.
-     * 
+     *
      * @return The existing configuration will not be modified. A new configuration is returned.
      */
     public XMLParserConfiguration withConvertNilAttributeToNull(final boolean newVal) {
@@ -298,7 +318,7 @@ public class XMLParserConfiguration {
 
     /**
      * When parsing the XML into JSON, specifies that tags that will be converted to arrays
-     * in this configuration {@code Set<String>} to parse the provided tags' values as arrays 
+     * in this configuration {@code Set<String>} to parse the provided tags' values as arrays
      * @return <code>forceList</code> unmodifiable configuration set.
      */
     public Set<String> getForceList() {
@@ -307,14 +327,44 @@ public class XMLParserConfiguration {
 
     /**
      * When parsing the XML into JSON, specifies that tags that will be converted to arrays
-     * in this configuration {@code Set<String>} to parse the provided tags' values as arrays 
-     * @param forceList  {@code new HashSet<String>()} to parse the provided tags' values as arrays 
+     * in this configuration {@code Set<String>} to parse the provided tags' values as arrays
+     * @param forceList  {@code new HashSet<String>()} to parse the provided tags' values as arrays
      * @return The existing configuration will not be modified. A new configuration is returned.
      */
     public XMLParserConfiguration withForceList(final Set<String> forceList) {
         XMLParserConfiguration newConfig = this.clone();
         Set<String> cloneForceList = new HashSet<String>(forceList);
         newConfig.forceList = Collections.unmodifiableSet(cloneForceList);
+        return newConfig;
+    }
+
+    /**
+     * The maximum nesting depth that the parser will descend before throwing an exception
+     * when parsing the XML into JSON.
+     * @return the maximum nesting depth set for this configuration
+     */
+    public int getMaxNestingDepth() {
+        return maxNestingDepth;
+    }
+
+    /**
+     * Defines the maximum nesting depth that the parser will descend before throwing an exception
+     * when parsing the XML into JSON. The default max nesting depth is 512, which means the parser
+     * will throw a JsonException if the maximum depth is reached.
+     * Using any negative value as a parameter is equivalent to setting no limit to the nesting depth,
+     * which means the parses will go as deep as the maximum call stack size allows.
+     * @param maxNestingDepth the maximum nesting depth allowed to the XML parser
+     * @return The existing configuration will not be modified. A new configuration is returned.
+     */
+    public XMLParserConfiguration withMaxNestingDepth(int maxNestingDepth) {
+        XMLParserConfiguration newConfig = this.clone();
+
+        if (maxNestingDepth > UNDEFINED_MAXIMUM_NESTING_DEPTH) {
+            newConfig.maxNestingDepth = maxNestingDepth;
+        } else {
+            newConfig.maxNestingDepth = UNDEFINED_MAXIMUM_NESTING_DEPTH;
+        }
+
         return newConfig;
     }
 }

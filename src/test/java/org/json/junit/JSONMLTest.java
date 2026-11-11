@@ -31,19 +31,19 @@ import org.junit.Test;
 
 /**
  * Tests for org.json.JSONML.java
- * 
+ *
  * Certain inputs are expected to result in exceptions. These tests are
  * executed first. JSONML provides an API to:
- *     Convert an XML string into a JSONArray or a JSONObject. 
+ *     Convert an XML string into a JSONArray or a JSONObject.
  *     Convert a JSONArray or JSONObject into an XML string.
  * Both fromstring and tostring operations operations should be symmetrical
- * within the limits of JSONML. 
+ * within the limits of JSONML.
  * It should be possible to perform the following operations, which should
  * result in the original string being recovered, within the limits of the
  * underlying classes:
  *  Convert a string -> JSONArray -> string -> JSONObject -> string
  *  Convert a string -> JSONObject -> string -> JSONArray -> string
- * 
+ *
  */
 public class JSONMLTest {
 
@@ -76,7 +76,7 @@ public class JSONMLTest {
 
     /**
      * Attempts to call JSONML.toString() with a null JSONArray.
-     * Expects a NullPointerException. 
+     * Expects a NullPointerException.
      */
     @Test(expected=NullPointerException.class)
     public void nullJSONXMLException() {
@@ -89,7 +89,7 @@ public class JSONMLTest {
 
     /**
      * Attempts to call JSONML.toString() with a null JSONArray.
-     * Expects a JSONException. 
+     * Expects a JSONException.
      */
     @Test
     public void emptyJSONXMLException() {
@@ -145,7 +145,7 @@ public class JSONMLTest {
             "[\"addresses\","+
                 "{\"xsi:noNamespaceSchemaLocation\":\"test.xsd\","+
                     "\"xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"},"+
-                // this array has no name 
+                // this array has no name
                 "["+
                     "[\"name\"],"+
                     "[\"nocontent\"],"+
@@ -200,7 +200,7 @@ public class JSONMLTest {
     }
 
     /**
-     * Attempts to transform a malformed XML document 
+     * Attempts to transform a malformed XML document
      * (element tag has a frontslash) to a JSONArray.\
      * Expects a JSONException
      */
@@ -211,7 +211,7 @@ public class JSONMLTest {
          * In this case, the XML is invalid because the 'name' element
          * contains an invalid frontslash.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -236,7 +236,7 @@ public class JSONMLTest {
      */
     @Test
     public void invalidBangInTagException() {
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -266,7 +266,7 @@ public class JSONMLTest {
          * In this case, the XML is invalid because an element
          * starts with '!' and has no closing tag
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -296,7 +296,7 @@ public class JSONMLTest {
          * In this case, the XML is invalid because an element
          * has no closing '>'.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -326,7 +326,7 @@ public class JSONMLTest {
          * In this case, the XML is invalid because an element
          * has no name after the closing tag '</'.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -356,7 +356,7 @@ public class JSONMLTest {
          * In this case, the XML is invalid because an element
          * has '>' after the closing tag '</' and name.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation=\"test.xsd\">\n"+
@@ -384,9 +384,9 @@ public class JSONMLTest {
         /**
          * xmlStr contains XML text which is transformed into a JSONArray.
          * In this case, the XML is invalid because an element
-         * does not have a complete CDATA string. 
+         * does not have a complete CDATA string.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
             "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -408,7 +408,7 @@ public class JSONMLTest {
     /**
      * Convert an XML document into a JSONArray, then use JSONML.toString()
      * to convert it into a string. This string is then converted back into
-     * a JSONArray. Both JSONArrays are compared against a control to 
+     * a JSONArray. Both JSONArrays are compared against a control to
      * confirm the contents.
      */
     @Test
@@ -425,7 +425,7 @@ public class JSONMLTest {
          * which is used to create a final JSONArray, which is also compared
          * against the expected JSONArray.
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
                  "xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -434,7 +434,7 @@ public class JSONMLTest {
                      "<nocontent/>>\n"+
                  "</address>\n"+
             "</addresses>";
-        String expectedStr = 
+        String expectedStr =
             "[\"addresses\","+
                 "{\"xsi:noNamespaceSchemaLocation\":\"test.xsd\","+
                     "\"xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"},"+
@@ -454,12 +454,12 @@ public class JSONMLTest {
     }
 
     /**
-     * Convert an XML document into a JSONObject. Use JSONML.toString() to 
+     * Convert an XML document into a JSONObject. Use JSONML.toString() to
      * convert it back into a string, and then re-convert it into a JSONObject.
      * Both JSONObjects are compared against a control JSONObject to confirm
      * the contents.
      * <p>
-     * Next convert the XML document into a JSONArray. Use JSONML.toString() to 
+     * Next convert the XML document into a JSONArray. Use JSONML.toString() to
      * convert it back into a string, and then re-convert it into a JSONArray.
      * Both JSONArrays are compared against a control JSONArray to confirm
      * the contents.
@@ -472,23 +472,23 @@ public class JSONMLTest {
         /**
          * xmlStr contains XML text which is transformed into a JSONObject,
          * restored to XML, transformed into a JSONArray, and then restored
-         * to XML again. Both JSONObject and JSONArray should contain the same 
+         * to XML again. Both JSONObject and JSONArray should contain the same
          * information and should produce the same XML, allowing for non-ordered
          * attributes.
-         * 
+         *
          * Transformation to JSONObject:
          *      The elementName is stored as a string where key="tagName"
          *      Attributes are simply stored as key/value pairs
          *      If the element has either content or child elements, they are stored
          *      in a jsonArray with key="childNodes".
-         * 
+         *
          * Transformation to JSONArray:
          *      1st entry = elementname
          *      2nd entry = attributes object (if present)
          *      3rd entry = content (if present)
          *      4th entry = child element JSONArrays (if present)
          */
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
                 "xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
@@ -605,7 +605,7 @@ public class JSONMLTest {
                 "\"tagName\":\"addresses\""+
             "}";
 
-        String expectedJSONArrayStr = 
+        String expectedJSONArrayStr =
             "["+
                 "\"addresses\","+
                 "{"+
@@ -665,12 +665,12 @@ public class JSONMLTest {
         JSONObject finalJsonObject = JSONML.toJSONObject(jsonObjectXmlToStr);
         Util.compareActualVsExpectedJsonObjects(finalJsonObject, expectedJsonObject);
 
-        // create a JSON array from the original string and make sure it 
+        // create a JSON array from the original string and make sure it
         // looks as expected
         JSONArray jsonArray = JSONML.toJSONArray(xmlStr);
         JSONArray expectedJsonArray = new JSONArray(expectedJSONArrayStr);
         Util.compareActualVsExpectedJsonArrays(jsonArray,expectedJsonArray);
-    
+
         // restore the XML, then make another JSONArray and make sure it
         // looks as expected
         String jsonArrayXmlToStr = JSONML.toString(jsonArray);
@@ -688,14 +688,14 @@ public class JSONMLTest {
      * Convert an XML document which contains embedded comments into
      * a JSONArray. Use JSONML.toString() to turn it into a string, then
      * reconvert it into a JSONArray. Compare both JSONArrays to a control
-     * JSONArray to confirm the contents. 
+     * JSONArray to confirm the contents.
      * <p>
      * This test shows how XML comments are handled.
      */
     @Test
     public void commentsInXML() {
 
-        String xmlStr = 
+        String xmlStr =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<!-- this is a comment -->\n"+
             "<addresses>\n"+
@@ -754,7 +754,7 @@ public class JSONMLTest {
         final String expectedJsonString = "[\"root\",[\"id\",\"01\"],[\"id\",\"1\"],[\"id\",\"00\"],[\"id\",\"0\"],[\"item\",{\"id\":\"01\"}],[\"title\",\"True\"]]";
         final JSONArray json = JSONML.toJSONArray(originalXml,true);
         assertEquals(expectedJsonString, json.toString());
-        
+
         final String reverseXml = JSONML.toString(json);
         assertEquals(originalXml, reverseXml);
     }
@@ -769,7 +769,7 @@ public class JSONMLTest {
         final String revertedXml = JSONML.toString(jsonArray);
         assertEquals(revertedXml, originalXml);
     }
-    
+
     /**
      * JSON string cannot be reverted to original xml. See test result in
      * comment below.
@@ -790,7 +790,7 @@ public class JSONMLTest {
 // 1. Our XML parser does not handle generic HTML entities, only valid XML entities. Hence &nbsp;
 //     or other HTML specific entities would fail on reversability
 // 2. Our JSON implementation for storing the XML attributes uses the standard unordered map.
-//     This means that <tag attr1="v1" attr2="v2" /> can not be reversed reliably.  
+//     This means that <tag attr1="v1" attr2="v2" /> can not be reversed reliably.
 //
 //    /**
 //     * Test texts taken from jsonml.org. Currently our implementation FAILS this conversion but shouldn't.
@@ -803,13 +803,13 @@ public class JSONMLTest {
 //        final String expectedJsonString = "[\"table\",{\"class\" : \"MyTable\",\"style\" : \"background-color:yellow\"},[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#550758\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:red\"},\"Example text here\"]],[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#993101\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:green\"},\"127624015\"]],[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#E33D87\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:blue\"},\"\u00A0\",[\"span\",{ \"style\" : \"background-color:maroon\" },\"\u00A9\"],\"\u00A0\"]]]";
 //        final JSONArray json = JSONML.toJSONArray(originalXml,true);
 //        final String actualJsonString = json.toString();
-//        
+//
 //        final String reverseXml = JSONML.toString(json);
 //        assertNotEquals(originalXml, reverseXml);
 //
 //        assertNotEquals(expectedJsonString, actualJsonString);
 //    }
-//    
+//
 //    /**
 //     * Test texts taken from jsonml.org but modified to have XML entities only.
 //     */
@@ -819,15 +819,15 @@ public class JSONMLTest {
 //        final String expectedJsonString = "[\"table\",{\"class\" : \"MyTable\",\"style\" : \"background-color:yellow\"},[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#550758\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:red\"},\"Example text here\"]],[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#993101\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:green\"},\"127624015\"]],[\"tr\",[\"td\",{\"class\" : \"MyTD\",\"style\" : \"border:1px solid black\"},\"#E33D87\"],[\"td\",{\"class\" : \"MyTD\",\"style\" : \"background-color:blue\"},\"&\",[\"span\",{ \"style\" : \"background-color:maroon\" },\">\"],\"<\"]]]";
 //        final JSONArray jsonML = JSONML.toJSONArray(originalXml,true);
 //        final String actualJsonString = jsonML.toString();
-//        
+//
 //        final String reverseXml = JSONML.toString(jsonML);
 //        // currently not equal because the hashing of the attribute objects makes the attribute
-//        // order not happen the same way twice 
+//        // order not happen the same way twice
 //        assertEquals(originalXml, reverseXml);
 //
 //        assertEquals(expectedJsonString, actualJsonString);
 //    }
-    
+
     @Test (timeout = 6000)
     public void testIssue484InfinteLoop1() {
         try {
@@ -839,11 +839,11 @@ public class JSONMLTest {
                     ex.getMessage());
         }
     }
-    
+
     @Test (timeout = 6000)
     public void testIssue484InfinteLoop2() {
         try {
-            String input = "??*\n" + 
+            String input = "??*\n" +
                     "??|?CglR??`??>?w??PIlr??D?$?-?o??O?*??{OD?Y??`2a????NM?bq?:O?>S$?J?B.gUK?m\b??zE???!v]???????c??????h???s???g???`?qbi??:Zl?)?}1^??k?0??:$V?$?Ovs(}J??????2;gQ????Tg?K?`?h%c?hmGA?<!C*?9?~?t?)??,zA???S}?Q??.q?j????]";
          JSONML.toJSONObject(input);
             fail("Exception expected for invalid JSON.");
@@ -853,4 +853,362 @@ public class JSONMLTest {
                     ex.getMessage());
         }
     }
+
+    @Test
+    public void testToJSONArrayMaxNestingDepthOf42IsRespected() {
+        final String wayTooLongMalformedXML = new String(new char[6000]).replace("\0", "<a>");
+
+        final int maxNestingDepth = 42;
+
+        try {
+            JSONML.toJSONArray(wayTooLongMalformedXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+
+            fail("Expecting a JSONException");
+        } catch (JSONException e) {
+            assertTrue("Wrong throwable thrown: not expecting message <" + e.getMessage() + ">",
+                e.getMessage().startsWith("Maximum nesting depth of " + maxNestingDepth));
+        }
+    }
+
+
+    @Test
+    public void testToJSONArrayMaxNestingDepthIsRespectedWithValidXML() {
+        final String perfectlyFineXML = "<Test>\n" +
+            "  <employee>\n" +
+            "    <name>sonoo</name>\n" +
+            "    <salary>56000</salary>\n" +
+            "    <married>true</married>\n" +
+            "  </employee>\n" +
+            "</Test>\n";
+
+        final int maxNestingDepth = 1;
+
+        try {
+            JSONML.toJSONArray(perfectlyFineXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+
+            fail("Expecting a JSONException");
+        } catch (JSONException e) {
+            assertTrue("Wrong throwable thrown: not expecting message <" + e.getMessage() + ">",
+                e.getMessage().startsWith("Maximum nesting depth of " + maxNestingDepth));
+        }
+    }
+
+    @Test
+    public void testToJSONArrayMaxNestingDepthWithValidFittingXML() {
+        final String perfectlyFineXML = "<Test>\n" +
+            "  <employee>\n" +
+            "    <name>sonoo</name>\n" +
+            "    <salary>56000</salary>\n" +
+            "    <married>true</married>\n" +
+            "  </employee>\n" +
+            "</Test>\n";
+
+        final int maxNestingDepth = 3;
+
+        try {
+            JSONML.toJSONArray(perfectlyFineXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            fail("XML document should be parsed as its maximum depth fits the maxNestingDepth " +
+                "parameter of the JSONMLParserConfiguration used");
+        }
+    }
+
+
+
+
+
+    @Test
+    public void testToJSONObjectMaxNestingDepthOf42IsRespected() {
+        final String wayTooLongMalformedXML = new String(new char[6000]).replace("\0", "<a>");
+
+        final int maxNestingDepth = 42;
+
+        try {
+            JSONML.toJSONObject(wayTooLongMalformedXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+
+            fail("Expecting a JSONException");
+        } catch (JSONException e) {
+            assertTrue("Wrong throwable thrown: not expecting message <" + e.getMessage() + ">",
+                e.getMessage().startsWith("Maximum nesting depth of " + maxNestingDepth));
+        }
+    }
+
+    @Test
+    public void testToJSONObjectMaxNestingDepthIsRespectedWithValidXML() {
+        final String perfectlyFineXML = "<Test>\n" +
+            "  <employee>\n" +
+            "    <name>sonoo</name>\n" +
+            "    <salary>56000</salary>\n" +
+            "    <married>true</married>\n" +
+            "  </employee>\n" +
+            "</Test>\n";
+
+        final int maxNestingDepth = 1;
+
+        try {
+            JSONML.toJSONObject(perfectlyFineXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+
+            fail("Expecting a JSONException");
+        } catch (JSONException e) {
+            assertTrue("Wrong throwable thrown: not expecting message <" + e.getMessage() + ">",
+                e.getMessage().startsWith("Maximum nesting depth of " + maxNestingDepth));
+        }
+    }
+
+    @Test
+    public void testToJSONObjectMaxNestingDepthWithValidFittingXML() {
+        final String perfectlyFineXML = "<Test>\n" +
+            "  <employee>\n" +
+            "    <name>sonoo</name>\n" +
+            "    <salary>56000</salary>\n" +
+            "    <married>true</married>\n" +
+            "  </employee>\n" +
+            "</Test>\n";
+
+        final int maxNestingDepth = 3;
+
+        try {
+            JSONML.toJSONObject(perfectlyFineXML, JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(maxNestingDepth));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            fail("XML document should be parsed as its maximum depth fits the maxNestingDepth " +
+                "parameter of the JSONMLParserConfiguration used");
+        }
+    }
+
+    @Test
+    public void testMaxNestingDepthIsSet() {
+        JSONMLParserConfiguration config = JSONMLParserConfiguration.ORIGINAL;
+
+        assertEquals(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, config.getMaxNestingDepth());
+        assertEquals(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH,
+            JSONMLParserConfiguration.KEEP_STRINGS.getMaxNestingDepth());
+        assertEquals(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH,
+            new JSONMLParserConfiguration().getMaxNestingDepth());
+
+        config = config.withMaxNestingDepth(42);
+        assertEquals(42, config.getMaxNestingDepth());
+
+        config = config.withMaxNestingDepth(0);
+        assertEquals(0, config.getMaxNestingDepth());
+
+        config = config.withMaxNestingDepth(-31415926);
+        assertEquals(JSONMLParserConfiguration.UNDEFINED_MAXIMUM_NESTING_DEPTH, config.getMaxNestingDepth());
+
+        config = config.withMaxNestingDepth(Integer.MIN_VALUE);
+        assertEquals(JSONMLParserConfiguration.UNDEFINED_MAXIMUM_NESTING_DEPTH, config.getMaxNestingDepth());
+    }
+
+    /**
+     * A configured maximum nesting depth must not be reset to the default
+     * when another configuration option is changed afterwards.
+     */
+    @Test
+    public void testMaxNestingDepthSurvivesFurtherConfiguration() {
+        JSONMLParserConfiguration config = new JSONMLParserConfiguration().withMaxNestingDepth(42);
+
+        config = config.withKeepStrings(true);
+        assertEquals(42, config.getMaxNestingDepth());
+        assertTrue(config.isKeepStrings());
+
+        config = config.withKeepStrings(false);
+        assertEquals(42, config.getMaxNestingDepth());
+    }
+
+    @Test
+    public void testMaxNestingDepthIsEnforcedAfterFurtherConfiguration() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(6000);
+        final JSONMLParserConfiguration config = JSONMLParserConfiguration.ORIGINAL
+            .withMaxNestingDepth(42)
+            .withKeepStrings(true);
+        Util.assertMaxNestingDepthReached(42, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(deeplyNestedXML, config);
+            }
+        });
+    }
+
+    /**
+     * Nesting depth of the malicious documents used by the default maximum nesting depth
+     * tests: deep enough that, without the depth guard, parsing overflows even the large
+     * stack used by {@link Util#throwableFromLargeStack(Runnable)}.
+     */
+    private static final int WAY_TOO_DEEP = 200000;
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForString() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(deeplyNestedXML);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForStringKeepStrings() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(deeplyNestedXML, true);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForTokener() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(new XMLTokener(deeplyNestedXML));
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForTokenerKeepStrings() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(new XMLTokener(deeplyNestedXML), true);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForStringWithConfig() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(deeplyNestedXML, new JSONMLParserConfiguration());
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthIsEnforcedForTokenerWithConfig() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONArray(new XMLTokener(deeplyNestedXML), JSONMLParserConfiguration.KEEP_STRINGS);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForString() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(deeplyNestedXML);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForStringKeepStrings() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(deeplyNestedXML, true);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForTokener() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(new XMLTokener(deeplyNestedXML));
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForTokenerKeepStrings() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(new XMLTokener(deeplyNestedXML), true);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForStringWithConfig() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(deeplyNestedXML, JSONMLParserConfiguration.KEEP_STRINGS);
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthIsEnforcedForTokenerWithConfig() {
+        final String deeplyNestedXML = Util.deeplyNestedOpeningTags(WAY_TOO_DEEP);
+        Util.assertMaxNestingDepthReached(JSONMLParserConfiguration.DEFAULT_MAXIMUM_NESTING_DEPTH, new Runnable() {
+            @Override
+            public void run() {
+                JSONML.toJSONObject(new XMLTokener(deeplyNestedXML), new JSONMLParserConfiguration());
+            }
+        });
+    }
+
+    @Test
+    public void testToJSONArrayDefaultMaxNestingDepthAcceptsModeratelyNestedXML() {
+        final int depth = 100;
+        JSONArray jsonArray = JSONML.toJSONArray(Util.nestedWellFormedXml(depth));
+        for (int i = 1; i < depth; i++) {
+            assertEquals("a", jsonArray.getString(0));
+            jsonArray = jsonArray.getJSONArray(1);
+        }
+        assertEquals(1, jsonArray.length());
+        assertEquals("a", jsonArray.getString(0));
+    }
+
+    @Test
+    public void testToJSONObjectDefaultMaxNestingDepthAcceptsModeratelyNestedXML() {
+        final int depth = 100;
+        JSONObject jsonObject = JSONML.toJSONObject(Util.nestedWellFormedXml(depth));
+        for (int i = 1; i < depth; i++) {
+            assertEquals("a", jsonObject.getString("tagName"));
+            jsonObject = jsonObject.getJSONArray("childNodes").getJSONObject(0);
+        }
+        assertEquals("a", jsonObject.getString("tagName"));
+        assertFalse(jsonObject.has("childNodes"));
+    }
+
+    @Test
+    public void testUndefinedMaxNestingDepthAllowsDeeperXML() {
+        final int depth = 1000;
+        final String deeplyNestedXML = Util.nestedWellFormedXml(depth);
+        Throwable thrown = Util.throwableFromLargeStack(new Runnable() {
+            @Override
+            public void run() {
+                JSONArray jsonArray = JSONML.toJSONArray(deeplyNestedXML,
+                    JSONMLParserConfiguration.ORIGINAL.withMaxNestingDepth(JSONMLParserConfiguration.UNDEFINED_MAXIMUM_NESTING_DEPTH));
+                for (int i = 1; i < depth; i++) {
+                    jsonArray = jsonArray.getJSONArray(1);
+                }
+                assertEquals(1, jsonArray.length());
+            }
+        });
+        assertNull("XML document should be parsed when no maximum nesting depth is set, but got " + thrown, thrown);
+    }
+
 }

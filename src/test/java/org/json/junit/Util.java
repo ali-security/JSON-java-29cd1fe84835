@@ -117,4 +117,85 @@ public class Util {
             );
         }
     }
+
+    /**
+     * Stack size, in bytes, of the thread used by {@link #throwableFromLargeStack(Runnable)}.
+     */
+    private static final long LARGE_STACK_SIZE = 8L * 1024L * 1024L;
+
+    /**
+     * Builds a malformed XML document made of the given number of unclosed
+     * <code>&lt;a&gt;</code> opening tags.
+     * @param depth the number of nested opening tags
+     * @return the XML text
+     */
+    public static String deeplyNestedOpeningTags(int depth) {
+        return new String(new char[depth]).replace("\0", "<a>");
+    }
+
+    /**
+     * Builds a well-formed XML document made of the given number of nested
+     * <code>&lt;a&gt;</code> elements.
+     * @param depth the number of nested elements
+     * @return the XML text
+     */
+    public static String nestedWellFormedXml(int depth) {
+        return deeplyNestedOpeningTags(depth) + new String(new char[depth]).replace("\0", "</a>");
+    }
+
+    /**
+     * Runs the given body on a dedicated thread that has a large (8 MiB) stack,
+     * and returns whatever the body threw.
+     * <p>
+     * The test JVM may be run with a small stack (for example -Xss512k). On such
+     * a stack a recursive parser descending to its default maximum nesting depth
+     * may run out of stack before its depth guard is reached, which would make it
+     * impossible to tell "rejected by the depth guard" apart from "ran out of
+     * stack". Running on a large stack keeps the two outcomes distinct.
+     *
+     * @param body the code to run
+     * @return the Throwable thrown by the body, or <code>null</code> if the body
+     *     completed normally
+     * @throws IllegalStateException if interrupted while waiting for the body
+     */
+    public static Throwable throwableFromLargeStack(final Runnable body) {
+        final Throwable[] thrown = new Throwable[1];
+        Thread worker = new Thread(null, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    body.run();
+                } catch (Throwable t) {
+                    thrown[0] = t;
+                }
+            }
+        }, "large-stack-test-worker", LARGE_STACK_SIZE);
+        worker.start();
+        try {
+            worker.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for the large stack worker", e);
+        }
+        return thrown[0];
+    }
+
+    /**
+     * Runs the given body on a large stack (see {@link #throwableFromLargeStack(Runnable)})
+     * and asserts that it threw a JSONException reporting that the given maximum
+     * nesting depth was reached.
+     * @param maxNestingDepth the maximum nesting depth expected in the message
+     * @param body the parsing code to run
+     */
+    public static void assertMaxNestingDepthReached(int maxNestingDepth, Runnable body) {
+        Throwable thrown = throwableFromLargeStack(body);
+        if (thrown == null) {
+            fail("Expecting a JSONException");
+        }
+        assertTrue("Expecting a JSONException but got " + thrown,
+            thrown instanceof JSONException);
+        String message = thrown.getMessage();
+        assertTrue("Wrong throwable thrown: not expecting message <" + message + ">",
+            message != null && message.startsWith("Maximum nesting depth of " + maxNestingDepth));
+    }
 }
