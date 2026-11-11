@@ -1434,6 +1434,105 @@ public class JSONObjectTest {
     }
 
     /**
+     * Verifies that getBigInteger / optBigInteger do not attempt to materialise a
+     * BigInteger whose decimal representation would exceed 1000 digits
+     * (upstream ParserConfiguration.DEFAULT_MAX_NUMBER_LENGTH). A short exponent-notation
+     * literal such as 1e100000000 is stored compactly as a BigDecimal at parse time
+     * but would otherwise expand to ~100 000 000 digits in BigDecimal.toBigInteger(),
+     * stalling the thread / OOM (CVE-2026-59171, issue #1063).
+     */
+    @Test(timeout = 5000)
+    public void getBigIntegerHugeExponentReturnsDefault() {
+        // BigDecimal path: value arrives via the parser as a BigDecimal
+        JSONObject jo = new JSONObject("{\"x\":1e100000000}");
+        assertTrue("huge-exponent literal parses to BigDecimal", jo.get("x") instanceof BigDecimal);
+        assertNull("optBigInteger returns default for huge exponent", jo.optBigInteger("x", null));
+        try {
+            jo.getBigInteger("x");
+            fail("getBigInteger should throw for huge exponent");
+        } catch (JSONException expected) {
+            // expected: integer part exceeds the 1000 digit limit
+        }
+
+        // String path: value put() as a String, exercised via objectToBigInteger's
+        // isDecimalNotation branch
+        JSONObject jo2 = new JSONObject();
+        jo2.put("x", "1e100000000");
+        assertNull("optBigInteger returns default for huge-exponent string", jo2.optBigInteger("x", null));
+
+        // JSONArray accessors delegate to the same helper
+        JSONArray ja = new JSONArray("[1e100000000]");
+        assertTrue("optBigInteger returns default for huge exponent (array)",
+                BigInteger.ONE.equals(ja.optBigInteger(0, BigInteger.ONE)));
+        try {
+            ja.getBigInteger(0);
+            fail("getBigInteger should throw for huge exponent (array)");
+        } catch (JSONException expected) {
+            // expected: integer part exceeds the 1000 digit limit
+        }
+
+        // Boundary: a value at the limit still converts correctly
+        JSONObject jo3 = new JSONObject("{\"x\":1e999}");
+        assertEquals("1e999 still converts", 0,
+                jo3.getBigInteger("x").compareTo(BigInteger.TEN.pow(999)));
+    }
+
+    /**
+     * Verifies the default 1000 digit limit applied by getBigInteger / optBigInteger
+     * on JSONObject and JSONArray, while ordinary values still convert.
+     */
+    @Test(timeout = 5000)
+    public void getBigIntegerHonorsDefaultMaxNumberLength() {
+        JSONObject jo = new JSONObject("{\"a\":1e1500,\"b\":1e2500}");
+
+        // Default limit is 1000 digits, both rejected
+        assertNull("1e1500 rejected under default", jo.optBigInteger("a", null));
+        assertNull("1e2500 rejected under default", jo.optBigInteger("b", null));
+        try {
+            jo.getBigInteger("b");
+            fail("getBigInteger should throw for 1e2500 under the default limit");
+        } catch (JSONException expected) {
+            // expected: integer part exceeds the 1000 digit limit
+        }
+
+        JSONObject small = new JSONObject("{\"x\":1234,\"y\":12.5e2,\"z\":\"9.99\"}");
+        assertEquals("small value accepted", BigInteger.valueOf(1234), small.getBigInteger("x"));
+        assertEquals("small decimal value accepted", BigInteger.valueOf(1250), small.getBigInteger("y"));
+        assertEquals("small decimal string truncates", BigInteger.valueOf(9), small.getBigInteger("z"));
+
+        // JSONArray accessors follow the same rules
+        JSONArray ja = new JSONArray("[1e1500]");
+        assertNull("array: 1e1500 rejected under default", ja.optBigInteger(0, null));
+    }
+
+    /**
+     * Verifies that getBigInteger / optBigInteger do not attempt to compute a huge
+     * power of ten for short negative exponent literals such as 1e-100000000.
+     * BigDecimal.toBigInteger() would otherwise build 10^100000000 to truncate the
+     * value, stalling the thread (CVE-2026-59171). Such values truncate to zero.
+     */
+    @Test(timeout = 5000)
+    public void getBigIntegerHugeNegativeExponentReturnsZero() {
+        // BigDecimal path: value arrives via the parser as a BigDecimal
+        JSONObject jo = new JSONObject("{\"x\":1e-100000000,\"y\":-5e-100000000,\"z\":0.5}");
+        assertTrue("huge negative exponent parses to BigDecimal", jo.get("x") instanceof BigDecimal);
+        assertEquals("getBigInteger truncates to zero", BigInteger.ZERO, jo.getBigInteger("x"));
+        assertEquals("optBigInteger truncates to zero", BigInteger.ZERO, jo.optBigInteger("x", BigInteger.ONE));
+        assertEquals("negative value truncates to zero", BigInteger.ZERO, jo.getBigInteger("y"));
+        assertEquals("fraction truncates to zero", BigInteger.ZERO, jo.getBigInteger("z"));
+
+        // String path: value put() as a String
+        JSONObject jo2 = new JSONObject();
+        jo2.put("x", "1e-100000000");
+        assertEquals("string truncates to zero", BigInteger.ZERO, jo2.optBigInteger("x", BigInteger.ONE));
+
+        // JSONArray accessors delegate to the same helper
+        JSONArray ja = new JSONArray("[1e-100000000]");
+        assertEquals("array: getBigInteger truncates to zero", BigInteger.ZERO, ja.getBigInteger(0));
+        assertEquals("array: optBigInteger truncates to zero", BigInteger.ZERO, ja.optBigInteger(0, BigInteger.ONE));
+    }
+
+    /**
      * The purpose for the static method getNames() methods are not clear.
      * This method is not called from within JSON-Java. Most likely
      * uses are to prep names arrays for:  
