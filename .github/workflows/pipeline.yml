@@ -4,15 +4,18 @@
 name: Java CI with Maven
 
 on:
-  push:
-    # branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      test-filter:
+        description: 'Optional surefire -Dtest filter; empty runs the full suite'
+        required: false
+        default: ''
 
 jobs:
   # old-school build and jar method. No tests run or compiled.
-  build-1_6: 
+  build-1_6:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         # build for java 1.6, however don't run any tests
@@ -20,10 +23,13 @@ jobs:
     name: Java ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
+      - name: Download JDK ${{ matrix.java }}
+        run: curl -fsSL https://cdn.azul.com/zulu/bin/zulu6.22.0.3-jdk6.0.119-linux_x64.tar.gz -o "$RUNNER_TEMP/jdk.tar.gz"
       - name: Setup java
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+          jdkFile: ${{ runner.temp }}/jdk.tar.gz
       - name: Compile Java ${{ matrix.java }}
         run: |
           mkdir -p target/classes
@@ -32,43 +38,71 @@ jobs:
         run: |
           jar cvf target/org.json.jar -C target/classes .
       - name: Upload Java ${{ matrix.java }} JAR
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: Java ${{ matrix.java }} JAR
           path: target/org.json.jar
-      
+
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MAVEN_OPTS: -Xss4m
     strategy:
+      fail-fast: false
       matrix:
         # build against supported Java LTS versions:
         java: [ 1.7, 8, 11 ]
     name: Java ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
+      - name: Prepare Java 1.7 toolchain
+        if: matrix.java == '1.7'
+        run: |
+          curl -fsSL https://cdn.azul.com/zulu/bin/zulu7.56.0.11-ca-jdk7.0.352-linux_x64.tar.gz -o "$RUNNER_TEMP/jdk7.tar.gz"
+          echo "JDK_FILE=$RUNNER_TEMP/jdk7.tar.gz" >> "$GITHUB_ENV"
+          curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.8.8/apache-maven-3.8.8-bin.tar.gz -o /tmp/maven.tar.gz
+          tar -xzf /tmp/maven.tar.gz -C /tmp
+          echo "/tmp/apache-maven-3.8.8/bin" >> "$GITHUB_PATH"
+          sed -i '0,/<build>/s||<build><pluginManagement><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>3.1.0</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId><version>3.2.0</version></plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>2.22.2</version></plugin></plugins></pluginManagement>|' pom.xml
       - name: Setup java
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+          jdkFile: ${{ env.JDK_FILE }}
       - name: Compile Java ${{ matrix.java }}
         run: mvn clean compile -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }} -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
       - name: Run Tests ${{ matrix.java }}
         run: |
-          mvn test -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }}
+          if [ -n "${{ inputs.test-filter }}" ]; then
+            mvn test -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }} -DargLine=-Xss512k -Dtest="${{ inputs.test-filter }}" -DfailIfNoTests=false
+          else
+            mvn test -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }} -DargLine=-Xss512k
+          fi
       - name: Build Test Report ${{ matrix.java }}
         if: ${{ always() }}
         run: |
-          mvn surefire-report:report-only -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }}
+          mvn org.apache.maven.plugins:maven-surefire-report-plugin:2.22.2:report-only -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }}
           mvn site -DgenerateReports=false -Dmaven.compiler.source=${{ matrix.java }} -Dmaven.compiler.target=${{ matrix.java }}
       - name: Upload Test Results ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: Test Results ${{ matrix.java }}
           path: target/surefire-reports/
       - name: Upload Test Report ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: Test Report ${{ matrix.java }}
           path: target/site/
+      - name: Package release JAR
+        if: matrix.java == '8'
+        run: mvn package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
+      - name: Upload release JAR
+        if: matrix.java == '8'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-jar
+          path: target/json-*[0-9].jar
+          if-no-files-found: error
