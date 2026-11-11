@@ -136,7 +136,7 @@ public class JSONArrayTest {
      * Expects a JSONException.
      */
     @Test
-    public void emptStr() {
+    public void emptyStr() {
         String str = "";
         try {
             assertNull("Should throw an exception", new JSONArray(str));
@@ -466,7 +466,21 @@ public class JSONArrayTest {
     }
 
     /**
-     * Exercise JSONArray.join() by converting a JSONArray into a 
+     * The JSON parser is permissive of unambiguous unquoted keys and values.
+     * Such JSON text should be allowed, even if it does not strictly conform
+     * to the spec. However, after being parsed, toString() should emit strictly
+     * conforming JSON text.
+     */
+    @Test
+    public void unquotedText() {
+        String str = "[value1, something!, (parens), foo@bar.com, 23, 23+45]";
+        JSONArray jsonArray = new JSONArray(str);
+        List<Object> expected = Arrays.<Object>asList("value1", "something!", "(parens)", "foo@bar.com", 23, "23+45");
+        assertEquals(expected, jsonArray.toList());
+    }
+
+    /**
+     * Exercise JSONArray.join() by converting a JSONArray into a
      * comma-separated string. Since this is very nearly a JSON document,
      * array braces are added to the beginning and end prior to validation.
      */
